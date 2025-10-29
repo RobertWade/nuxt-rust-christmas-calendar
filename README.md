@@ -1,6 +1,6 @@
 # 🎄 Rust/Vue Christmas Calendar
 
-An open-source learning project for building an **interactive Advent calendar** using **Rust (Backend)** and **Nuxt 3 (Frontend)**. The goal is to learn modern web development with a secure, high-performance stack — while creating something meaningful and fun to share.
+An open-source learning project for building an **interactive Advent calendar** using **Rust (Backend)** and **Nuxt 4 (Frontend)**. The goal is to learn modern web development with a secure, high-performance stack — while creating something meaningful and fun to share.
 
 ---
 
@@ -17,7 +17,7 @@ An open-source learning project for building an **interactive Advent calendar** 
 
 | Layer          | Technology                                                        | Notes                                             |
 | -------------- | ----------------------------------------------------------------- | ------------------------------------------------- |
-| Frontend       | [Nuxt 3](https://nuxt.com) + [Nuxt UI](https://ui.nuxt.com)       | Mobile-first, SSR, Figma-based design system      |
+| Frontend       | [Nuxt 4](https://nuxt.com) + [Nuxt UI](https://ui.nuxt.com)       | Mobile-first, SSR, Figma-based design system      |
 | Backend        | [Rust](https://www.rust-lang.org/) + [Axum](https://docs.rs/axum) | API server, authentication, calendar logic        |
 | Database       | PostgreSQL / SQLx                                                 | Local via Docker, or managed via Supabase/Hetzner |
 | Infrastructure | Docker Compose, GitHub Actions, Vercel/Fly.io                     | CI/CD & deployment                                |
