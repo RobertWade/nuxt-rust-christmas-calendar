@@ -1,0 +1,8 @@
+# Frontend (Nuxt)
+apps/frontend/ @RobertWade
+
+# Backend (Rust)
+apps/backend/ @RobertWade
+
+# CI / workflows
+.github/ @RobertWade

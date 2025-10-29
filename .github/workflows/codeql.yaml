@@ -1,0 +1,15 @@
+name: codeql
+on:
+  push: { branches: [ main, develop ] }
+  pull_request: { branches: [ main, develop ] }
+jobs:
+  analyze:
+    name: codeql
+    uses: github/codeql-action/analyze@v3
+    with:
+      languages: javascript, typescript, cpp # cpp covers Rust via CodeQL “cpp” pack is NOT correct; instead:
+# NOTE: For Rust use:
+# - uses: github/codeql-action/init@v3
+#   with: { languages: javascript, typescript, rust }
+# then analyze:
+# - uses: github/codeql-action/analyze@v3
