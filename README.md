@@ -58,7 +58,7 @@ weihnachtskalender/
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/<user>/weihnachtskalender.git
+git clone https://github.com/RobertWade/nuxt-rust-christmas-calendar.git
 cd weihnachtskalender
 
 # 2. Start dev environment
