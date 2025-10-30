@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { PropType } from 'vue'
+
 const props = defineProps({
   altStyle: {
     type: Boolean,
@@ -11,6 +13,10 @@ const props = defineProps({
   to: {
     type: String,
     default: '',
+  },
+  type: {
+    type: String as PropType<'button' | 'submit' | 'reset'>,
+    default: 'button',
   },
   disabled: {
     type: Boolean,
@@ -29,13 +35,20 @@ const computedClass = computed(() => {
   }
   if (props.disabled) {
     baseClasses += ' opacity-50 cursor-not-allowed';
+  } else {
+    baseClasses += ' hover:bg-primary-dark';
   }
   return baseClasses;
 });
 </script>
 
 <template>
-  <button v-if="!link && !to" :class="computedClass" @click="$emit('click')">
+  <button
+    v-if="!link && !to"
+    :type="type"
+    :class="computedClass"
+    @click="$emit('click')"
+  >
     <slot />
   </button>
   <a v-else-if="link" :href="link" :class="computedClass">
