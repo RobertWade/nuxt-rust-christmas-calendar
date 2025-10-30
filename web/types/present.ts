@@ -1,7 +1,7 @@
-export type PresentMediaType = 'image' | 'video' | 'audio' | 'link'
+export type PresentMediaType = 'image' | 'video' | 'audio' | 'link' | null;
 
 export interface PresentMedia {
-  type: PresentMediaType
+  type?: PresentMediaType
   url: string
   description?: string
   thumbnailUrl?: string | null

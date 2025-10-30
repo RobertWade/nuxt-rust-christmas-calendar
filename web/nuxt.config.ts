@@ -17,7 +17,8 @@ export default defineNuxtConfig({
     '@nuxt/test-utils',
     '@nuxtjs/tailwindcss',
     '@vueuse/nuxt',
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    'pinia-plugin-persistedstate/nuxt'
   ],
   app: {
     head: {
