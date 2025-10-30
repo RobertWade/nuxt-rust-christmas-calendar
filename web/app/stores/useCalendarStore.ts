@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Calendar, CalendarDoor } from '../types'
+import type { Calendar, CalendarDoor } from '@/types'
 
 export const useCalendarStore = defineStore(
   "calendar",

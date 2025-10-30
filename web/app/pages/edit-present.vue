@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
-import { useCalendarStore } from '../../stores/useCalendarStore'
-import type { CalendarDoor, Present, PresentMedia, PresentMediaType } from '../../types'
+import { useCalendarStore } from '@/stores/useCalendarStore'
+import type { CalendarDoor, Present, PresentMedia, PresentMediaType } from '@/types'
 
 const calendarStore = useCalendarStore()
 const { activeDoor, calendar } = storeToRefs(calendarStore)
