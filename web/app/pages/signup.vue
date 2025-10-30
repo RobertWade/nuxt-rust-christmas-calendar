@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useUserStore } from '../../stores/useUserStore'
+import { useUserStore } from '@/stores/useUserStore'
 
 const email = ref('')
 const password = ref('')

@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import CalPageGrid from '~/components/CalPageGrid.vue'
-import { useCalendarStore } from '../../stores/useCalendarStore'
-import { useUserStore } from '../../stores/useUserStore'
-import type { Calendar, CalendarDoor } from '../../types'
+import { useCalendarStore } from '@/stores/useCalendarStore'
+import { useUserStore } from '@/stores/useUserStore'
+import type { Calendar, CalendarDoor } from '@/types'
 
 const calendarStore = useCalendarStore()
 const userStore = useUserStore()

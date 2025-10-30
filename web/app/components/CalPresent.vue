@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { CalendarDoor, Present } from '../../types'
+import type { CalendarDoor, Present } from '../types'
 import CalHeader from './CalHeader.vue'
 
 const props = defineProps<{ door: CalendarDoor | null }>()

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
-import { useCalendarStore } from '../../stores/useCalendarStore'
+import { useCalendarStore } from '@/stores/useCalendarStore'
 
 const calendarStore = useCalendarStore()
 const { calendar, doorList, currentDoor } = storeToRefs(calendarStore)
