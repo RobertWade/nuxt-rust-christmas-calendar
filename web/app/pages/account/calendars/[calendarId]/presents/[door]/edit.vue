@@ -9,7 +9,11 @@ const { activeDoor, calendar } = storeToRefs(calendarStore)
 const router = useRouter()
 const route = useRoute()
 
-const dayParam = computed(() => Number(route.query.day ?? calendarStore.currentDoor))
+const dayParam = computed(() => {
+    const doorParam = route.params.door
+    const day = Number(doorParam)
+    return Number.isFinite(day) && day > 0 ? day : calendarStore.currentDoor
+})
 
 watchEffect(() => {
     if (Number.isFinite(dayParam.value) && dayParam.value > 0) {
@@ -145,7 +149,7 @@ function buildPresent(baseDoor: CalendarDoor): Present {
 
 async function handleSave() {
     if (!calendar.value) {
-        router.push('/new-calendar')
+        router.push('/account/calendars/new')
         return
     }
 
@@ -167,7 +171,7 @@ async function handleSave() {
 
         calendarStore.upsertDoor(updatedDoor)
         calendarStore.setCurrentDoor(updatedDoor.day)
-        await router.push('/create-presents')
+        await router.push(`/account/calendars/${calendar.value.id}/presents`)
     } finally {
         saving.value = false
     }

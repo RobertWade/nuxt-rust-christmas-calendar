@@ -71,7 +71,7 @@ async function handleSubmit() {
         }
 
         calendarStore.setCalendar(calendar)
-        await router.push('/create-presents')
+        await router.push(`/account/calendars/${calendar.id}/presents`)
     } finally {
         loading.value = false
     }
@@ -100,7 +100,7 @@ async function handleSubmit() {
     </CalPageGrid>
     <CalPageGrid v-else>
         <CalHeader title="Your Calendars" icon="🎄" />
-        <CalButton to="/create-presents" alt-style>{{ calendarStore.calendar.name }}</CalButton>
-        <CalButton @click="calendarStore.resetCalendar" disabled>Create More Calendars (coming soon)</CalButton>
+        <CalButton :to="`/account/calendars/${calendarStore.calendar.id}/presents`" alt-style>{{ calendarStore.calendar.name }}</CalButton>
+        <CalButton disabled @click="calendarStore.clearCalendar">Create More Calendars (coming soon)</CalButton>
     </CalPageGrid>
 </template>
