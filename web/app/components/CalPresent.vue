@@ -51,7 +51,7 @@ const openDescription = computed(() => {
     </p>
     <p v-else class="italic text-gray-500">This door is still waiting for its story.</p>
 
-    <div v-if="media" class="w-full border border-gray-300 rounded-xl overflow-hidden">
+    <div v-if="media && media.type !== 'audio'" class="w-full border border-gray-300 rounded-xl overflow-hidden">
       <div v-if="mediaBadge" class="flex items-center gap-2 bg-primary/5 px-4 py-2 text-sm text-primary">
         <span>{{ mediaBadge.icon }}</span>
         <span>{{ mediaBadge.label }}</span>
@@ -65,9 +65,6 @@ const openDescription = computed(() => {
       <video v-else-if="media.type === 'video'" controls class="w-full h-48 object-cover">
         <source :src="media.url" type="video/mp4">
       </video>
-      <audio v-else-if="media.type === 'audio'" controls class="w-full">
-        <source :src="media.url">
-      </audio>
       <a
         v-else
         :href="media.url"
@@ -78,6 +75,10 @@ const openDescription = computed(() => {
         {{ media.description || 'Open link' }}
       </a>
     </div>
+
+     <audio v-if="media?.type === 'audio'" autoplay class="w-full opacity-0">
+        <source :src="media.url">
+    </audio>
 
     <div v-if="tasks.length" class="space-y-2">
       <p class="text-sm font-semibold text-gray-600">Today's little missions</p>
