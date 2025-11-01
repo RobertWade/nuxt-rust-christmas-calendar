@@ -182,7 +182,7 @@ function handleCancel() {
 }
 
 function selectMediaType(type: PresentMediaType) {
-    form.mediaType = form.mediaType === type ? null : type;
+    form.mediaType = form.mediaType === type ? null : type
 }
 </script>
 
