@@ -37,7 +37,7 @@ async function handleSignIn() {
             avatarUrl: null
         })
 
-        await router.push('/new-calendar')
+        await router.push('/account/calendars/new')
     } finally {
         loading.value = false
     }

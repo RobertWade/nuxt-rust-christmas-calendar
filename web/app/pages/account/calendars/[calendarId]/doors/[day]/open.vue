@@ -9,7 +9,11 @@ const { activeDoor, doorList } = storeToRefs(calendarStore)
 const route = useRoute()
 const router = useRouter()
 
-const dayParam = computed(() => Number(route.query.day ?? calendarStore.currentDoor))
+const dayParam = computed(() => {
+   const dayRouteParam = route.params.day
+   const day = Number(dayRouteParam)
+   return Number.isFinite(day) && day > 0 ? day : calendarStore.currentDoor
+})
 
 watchEffect(() => {
    if (Number.isFinite(dayParam.value) && dayParam.value > 0) {
@@ -38,7 +42,12 @@ watch(
 )
 
 function goBackToCalendar() {
-   router.push('/view-calendar')
+   const calendarId = calendarStore.calendar?.id
+   if (calendarId) {
+      router.push(`/account/calendars/${calendarId}`)
+   } else {
+      router.push('/account/calendars/new')
+   }
 }
 </script>
 

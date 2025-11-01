@@ -11,17 +11,17 @@ const hasCalendar = computed(() => !!calendarStore.calendar)
 
 watchEffect(() => {
     if (!hasCalendar.value && import.meta.client) {
-        router.replace('/new-calendar')
+        router.replace('/account/calendars/new')
     }
 })
 
 function handleDoorSelect(day: number) {
     calendarStore.setCurrentDoor(day)
-    router.push({ path: '/edit-present', query: { day } })
+    router.push(`/account/calendars/${calendarStore.calendar?.id}/presents/${day}/edit`)
 }
 
 function goToPreview() {
-    router.push('/view-calendar')
+    router.push(`/account/calendars/${calendarStore.calendar?.id}`)
 }
 
 function doorIcon(door: CalendarDoor) {
