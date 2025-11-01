@@ -54,7 +54,7 @@ function goToEditor() {
                         v-for="door in doorList"
                         :key="door.day"
                         :title="door.day"
-                        :icon="door.present && door.present.content.tasks?.length === 0? '🎁' : '📝'"
+                        :icon="door.present && door.present.content.tasks?.length === 0 ? '🎁' : '📝'"
                         :active="door.day === currentDoor"
                         :disabled="door.state === 'locked'"
                         @select="handleDoorSelect(door.day, door.state === 'locked')"
