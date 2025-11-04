@@ -23,7 +23,8 @@ const form = reactive({
     mediaUrl: '',
     mediaDescription: '',
     mediaType: null as PresentMediaType,
-    tasksText: ''
+    tasksText: '',
+    audio: ''
 })
 
 const errorMessage = ref<string | null>(null)
@@ -32,8 +33,7 @@ const saving = ref(false)
 const mediaTypeOptions: Array<{ value: PresentMediaType; label: string; icon: string; hint: string }> = [
     { value: 'link', label: 'Link', icon: '🔗', hint: 'Use any external resource' },
     { value: 'image', label: 'Bild', icon: '🖼️', hint: 'Display a picture' },
-    { value: 'video', label: 'Video', icon: '🎬', hint: 'Embed a short clip' },
-    { value: 'audio', label: 'Audio', icon: '🎧', hint: 'Share a voice note' }
+    { value: 'video', label: 'Video', icon: '🎬', hint: 'Embed a short clip' }
 ]
 
 const mediaUrlPlaceholder = computed(() => {
@@ -44,8 +44,6 @@ const mediaUrlPlaceholder = computed(() => {
             return 'Image URL (optional)'
         case 'video':
             return 'Video URL (optional)'
-        case 'audio':
-            return 'Audio URL (optional)'
         default:
             return 'Link URL (optional)'
     }
@@ -59,8 +57,6 @@ const mediaDescriptionPlaceholder = computed(() => {
             return 'Short caption for the image (optional)'
         case 'video':
             return 'Add a note about the video (optional)'
-        case 'audio':
-            return 'Describe the audio message (optional)'
         default:
             return 'Description (optional)'
     }
@@ -133,6 +129,7 @@ function buildPresent(baseDoor: CalendarDoor): Present {
             title: form.title || `Door ${baseDoor.day}`,
             message: form.message,
             media: buildMedia(),
+            audio: form.audio,
             tasks: form.tasksText
                 .split('\n')
                 .map(task => task.trim())
@@ -164,7 +161,7 @@ async function handleSave() {
             state: door.state === 'locked' ? 'available' : door.state,
             present: buildPresent(door)
         }
-
+        console.log('Updated Door:', updatedDoor)
         calendarStore.upsertDoor(updatedDoor)
         calendarStore.setCurrentDoor(updatedDoor.day)
         await router.push('/create-presents')
@@ -197,9 +194,13 @@ function selectMediaType(type: PresentMediaType) {
                 
                 <CalTextBox v-model="form.title" placeholder="Title" />
                 <CalTextArea v-model="form.message" placeholder="Description" />
+                <CalTextBox
+                    v-model="form.audio"
+                    placeholder="Link to song (optional)"
+                />
                 <div class="grid gap-2">
                     <p class="text-sm font-semibold text-gray-600">Media type</p>
-                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div class="grid grid-cols-3 gap-3 sm:grid-cols-4">
                         <button
                             v-for="option in mediaTypeOptions"
                             :key="option.value || ''"

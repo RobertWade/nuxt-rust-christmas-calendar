@@ -13,6 +13,8 @@ const presentMessage = computed(() => present.value?.content.message || '')
 
 const media = computed(() => present.value?.content.media ?? null)
 
+const audio = computed(() => present.value?.content.audio ?? null)
+
 const tasks = computed(() => present.value?.content.tasks ?? [])
 
 const mediaBadge = computed(() => {
@@ -24,8 +26,6 @@ const mediaBadge = computed(() => {
       return { icon: '🖼️', label: 'Bild' }
     case 'video':
       return { icon: '🎬', label: 'Video' }
-    case 'audio':
-      return { icon: '🎧', label: 'Audio' }
     case 'link':
     default:
       return { icon: '🔗', label: 'Link' }
@@ -51,7 +51,7 @@ const openDescription = computed(() => {
     </p>
     <p v-else class="italic text-gray-500">This door is still waiting for its story.</p>
 
-    <div v-if="media && media.type !== 'audio'" class="w-full border border-gray-300 rounded-xl overflow-hidden">
+    <div v-if="media" class="w-full border border-gray-300 rounded-xl overflow-hidden">
       <div v-if="mediaBadge" class="flex items-center gap-2 bg-primary/5 px-4 py-2 text-sm text-primary">
         <span>{{ mediaBadge.icon }}</span>
         <span>{{ mediaBadge.label }}</span>
@@ -76,8 +76,8 @@ const openDescription = computed(() => {
       </a>
     </div>
 
-     <audio v-if="media?.type === 'audio'" autoplay class="w-full opacity-0">
-        <source :src="media.url">
+     <audio v-if="audio" autoplay class="w-full opacity-0">
+        <source :src="audio">
     </audio>
 
     <div v-if="tasks.length" class="space-y-2">

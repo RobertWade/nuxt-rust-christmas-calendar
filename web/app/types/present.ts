@@ -12,6 +12,7 @@ export interface PresentContent {
   message: string
   media?: PresentMedia | null
   tasks?: string[]
+  audio?: string
 }
 
 export interface Present {
