@@ -1,5 +1,8 @@
 <script lang="ts" setup>
-defineProps({
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+const props = defineProps({
     title: {
         type: String,
         default: ''
@@ -19,11 +22,19 @@ defineProps({
     backButton: {
         type: Boolean,
         default: false
+    },
+    backLink: {
+        type: String,
+        default: ''
     }
 })
 
 function goBack() {
-    window.history.back();
+    if (props.backLink) {
+        router.push(props.backLink)
+    } else {
+        window.history.back()
+    }
 }
 </script>
 

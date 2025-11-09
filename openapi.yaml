@@ -1,0 +1,241 @@
+openapi: 3.0.0
+info:
+  title: Christmas Calendar API
+  version: 1.0.0
+paths:
+  /calendars:
+    get:
+      summary: Get all calendars
+      responses:
+        '200':
+          description: A list of calendars
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Calendar'
+    post:
+      summary: Create a new calendar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCalendar'
+      responses:
+        '201':
+          description: Calendar created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+  /calendars/{id}:
+    get:
+      summary: Get a calendar by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A calendar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+        '404':
+          description: Calendar not found
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: Email already registered
+  /auth/login:
+    post:
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+  /auth/password/request:
+    post:
+      summary: Request password reset token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '200':
+          description: Password reset request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetResponse'
+  /auth/password/reset:
+    post:
+      summary: Reset password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+      responses:
+        '204':
+          description: Password updated
+        '400':
+          description: Invalid token or payload
+components:
+  schemas:
+    Calendar:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        ownerId:
+          type: string
+        description:
+          type: string
+          nullable: true
+        recipientName:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, ready, published]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        doors:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalendarDoor'
+    CalendarDoor:
+      type: object
+      properties:
+        day:
+          type: integer
+        opensAt:
+          type: string
+          format: date-time
+        state:
+          type: string
+          enum: [locked, available, opened]
+        present:
+          type: object
+          nullable: true
+    NewCalendar:
+      type: object
+      properties:
+        name:
+          type: string
+        ownerId:
+          type: string
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        expiresAt:
+          type: string
+          format: date-time
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        avatarUrl:
+          type: string
+          nullable: true
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    PasswordResetRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    PasswordResetConfirm:
+      type: object
+      required: [token, password]
+      properties:
+        token:
+          type: string
+        password:
+          type: string
+          format: password
+    PasswordResetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        resetToken:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time

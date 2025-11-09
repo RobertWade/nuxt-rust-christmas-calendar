@@ -1,20 +1,35 @@
 <script lang="ts" setup>
+import { computed, onMounted, reactive, ref, watchEffect } from 'vue'
+import type { NavigationGuard } from 'vue-router'
 import { useCalendarStore } from '@/stores/useCalendarStore'
 import { useUserStore } from '@/stores/useUserStore'
 import type { Calendar, CalendarDoor } from '@/types'
 
+const requireAuth = 'auth' as unknown as NavigationGuard
+
+definePageMeta({
+    middleware: requireAuth,
+})
+
 const calendarStore = useCalendarStore()
 const userStore = useUserStore()
 const router = useRouter()
+const route = useRoute()
 
 const form = reactive({
     name: '',
     recipientName: '',
-    description: ''
+    description: '',
 })
 
 const loading = ref(false)
+const initializing = ref(true)
 const errorMessage = ref<string | null>(null)
+const loadError = ref<string | null>(null)
+const navigationError = ref<string | null>(null)
+const navigating = ref(false)
+
+const calendarList = computed(() => calendarStore.calendars)
 
 let prefilled = false
 
@@ -40,9 +55,39 @@ function createDoors(): CalendarDoor[] {
             day,
             opensAt: openDate.toISOString(),
             state: day === 1 ? 'available' : 'locked',
-            present: null
+            present: null,
         }
     })
+}
+
+function extractErrorMessage(error: unknown) {
+    if (error && typeof error === 'object') {
+        const payload = error as {
+            data?: { message?: string; error?: string }
+            statusMessage?: string
+            message?: string
+        }
+        return (
+            payload.data?.message ||
+            payload.data?.error ||
+            payload.statusMessage ||
+            payload.message ||
+            'Unable to load your calendars right now.'
+        )
+    }
+    return 'Unable to load your calendars right now.'
+}
+
+async function ensureCalendar() {
+    initializing.value = true
+    loadError.value = null
+    try {
+        await calendarStore.ensureCalendarLoaded(route.query.calendarId as string | undefined)
+    } catch (error) {
+        loadError.value = extractErrorMessage(error)
+    } finally {
+        initializing.value = false
+    }
 }
 
 async function handleSubmit() {
@@ -55,33 +100,57 @@ async function handleSubmit() {
     loading.value = true
 
     try {
-        const now = new Date().toISOString()
+        const created = await calendarStore.createCalendar({
+            name: form.name.trim(),
+        })
 
-        const calendar: Calendar = {
-            id: calendarStore.calendar?.id ?? `cal-${Date.now()}`,
-            ownerId: userStore.user?.id ?? 'guest',
-            name: form.name,
-            description: form.description || undefined,
-            recipientName: form.recipientName || undefined,
-            status: calendarStore.calendar?.status ?? 'draft',
-            createdAt: calendarStore.calendar?.createdAt ?? now,
-            updatedAt: now,
-            publishedAt: calendarStore.calendar?.publishedAt ?? null,
-            doors: calendarStore.calendar?.doors.length ? calendarStore.calendar.doors : createDoors()
+        const withDetails: Calendar = {
+            ...created,
+            description: form.description || created.description,
+            recipientName: form.recipientName || created.recipientName,
+            doors: created.doors.length ? created.doors : createDoors(),
         }
 
-        calendarStore.setCalendar(calendar)
+        calendarStore.setCalendar(withDetails)
+            calendarStore.setCalendars([
+                ...calendarList.value.filter((item) => item.id !== withDetails.id),
+                withDetails,
+            ])
         await router.push('/create-presents')
+    } catch (error) {
+        errorMessage.value = extractErrorMessage(error)
     } finally {
         loading.value = false
     }
 }
+
+async function openCalendarEditor(targetId: string) {
+    navigationError.value = null
+    navigating.value = true
+    try {
+        await calendarStore.ensureCalendarLoaded(targetId)
+        await router.push({ path: '/create-presents', query: { calendarId: targetId } })
+    } catch (error) {
+        navigationError.value = extractErrorMessage(error)
+    } finally {
+        navigating.value = false
+    }
+}
+
+onMounted(() => {
+    if (!userStore.session) {
+        return
+    }
+    ensureCalendar()
+})
 </script>
 
 <template>
-    <CalPageGrid v-if="!calendarStore.calendar">
+    <CalPageGrid>
         <CalHeader title="Create New Calendar" icon="🎄" />
-        <form v-if="!calendarStore.calendar" class="flex flex-col gap-4 max-w-sm" @submit.prevent="handleSubmit">
+        <div v-if="initializing" class="text-sm text-gray-500">Loading your calendars…</div>
+        <p v-if="loadError" class="text-sm text-red-500">{{ loadError }}</p>
+        <form class="flex flex-col gap-4 max-w-sm" @submit.prevent="handleSubmit">
             <div class="flex flex-col">
                 <label for="calendar-name" class="mb-1">Calendar Name</label>
                 <CalTextBox id="calendar-name" v-model="form.name" placeholder="Enter calendar name" />
@@ -97,10 +166,19 @@ async function handleSubmit() {
             <p v-if="errorMessage" class="text-sm text-red-500">{{ errorMessage }}</p>
             <CalButton type="submit" :disabled="loading">{{ loading ? 'Creating…' : 'Next' }}</CalButton>
         </form>
-    </CalPageGrid>
-    <CalPageGrid v-else>
-        <CalHeader title="Your Calendars" icon="🎄" />
-        <CalButton to="/create-presents" alt-style>{{ calendarStore.calendar.name }}</CalButton>
-        <CalButton @click="calendarStore.resetCalendar" disabled>Create More Calendars (coming soon)</CalButton>
+        <section v-if="calendarList.length" class="mt-8 flex flex-col gap-2">
+            <p class="text-sm text-gray-600">Your calendars</p>
+            <p v-if="navigationError" class="text-sm text-red-500">{{ navigationError }}</p>
+            <CalButton
+                v-for="item in calendarList"
+                :key="item.id"
+                type="button"
+                alt-style
+                :disabled="navigating"
+                @click="openCalendarEditor(item.id)"
+            >
+                {{ item.name }}
+            </CalButton>
+        </section>
     </CalPageGrid>
 </template>

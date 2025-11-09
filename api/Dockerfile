@@ -1,5 +1,5 @@
 # Dockerfile
-FROM rust:latest
+FROM rust:1.90.0-slim
 
 WORKDIR /usr/src/app
 
