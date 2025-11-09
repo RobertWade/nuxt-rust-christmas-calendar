@@ -1,6 +1,11 @@
 import { defineNuxtConfig } from 'nuxt/config';
 
 export default defineNuxtConfig({
+  runtimeConfig: {
+    public: {
+      backendUrl: process.env.BACKEND_URL || 'http://localhost:8080/api/v1',
+    },
+  },
   devtools: { enabled: true },
   css: ['./app/assets/css/tokens.css','./app/assets/css/main.css'],
   

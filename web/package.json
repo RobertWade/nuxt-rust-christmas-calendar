@@ -26,6 +26,7 @@
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
+    "openapi-typescript": "^7.10.1",
     "vite-tsconfig-paths": "^5.1.4"
   }
 }

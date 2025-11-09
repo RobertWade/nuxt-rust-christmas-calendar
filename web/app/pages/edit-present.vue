@@ -1,7 +1,15 @@
 <script lang="ts" setup>
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useCalendarStore } from '@/stores/useCalendarStore'
 import type { CalendarDoor, Present, PresentMedia, PresentMediaType } from '@/types'
+import type { NavigationGuard } from 'vue-router'
+
+const requireAuth = 'auth' as unknown as NavigationGuard
+
+definePageMeta({
+    middleware: requireAuth,
+})
 
 const calendarStore = useCalendarStore()
 const { activeDoor, calendar } = storeToRefs(calendarStore)
@@ -10,12 +18,18 @@ const router = useRouter()
 const route = useRoute()
 
 const dayParam = computed(() => Number(route.query.day ?? calendarStore.currentDoor))
+const loadingCalendar = ref(true)
+const loadError = ref<string | null>(null)
 
-watchEffect(() => {
-    if (Number.isFinite(dayParam.value) && dayParam.value > 0) {
-        calendarStore.setCurrentDoor(dayParam.value)
-    }
-})
+watch(
+    () => dayParam.value,
+    (value) => {
+        if (Number.isFinite(value) && value > 0) {
+            calendarStore.setCurrentDoor(value)
+        }
+    },
+    { immediate: true },
+)
 
 const form = reactive({
     title: '',
@@ -23,7 +37,7 @@ const form = reactive({
     mediaUrl: '',
     mediaDescription: '',
     mediaType: null as PresentMediaType,
-    tasksText: ''
+    tasksText: '',
 })
 
 const errorMessage = ref<string | null>(null)
@@ -33,7 +47,7 @@ const mediaTypeOptions: Array<{ value: PresentMediaType; label: string; icon: st
     { value: 'link', label: 'Link', icon: '🔗', hint: 'Use any external resource' },
     { value: 'image', label: 'Bild', icon: '🖼️', hint: 'Display a picture' },
     { value: 'video', label: 'Video', icon: '🎬', hint: 'Embed a short clip' },
-    { value: 'audio', label: 'Audio', icon: '🎧', hint: 'Share a voice note' }
+    { value: 'audio', label: 'Audio', icon: '🎧', hint: 'Share a voice note' },
 ]
 
 const mediaUrlPlaceholder = computed(() => {
@@ -68,7 +82,7 @@ const mediaDescriptionPlaceholder = computed(() => {
 
 watch(
     activeDoor,
-    door => {
+    (door) => {
         if (!door) {
             form.title = ''
             form.message = ''
@@ -86,11 +100,41 @@ watch(
         form.mediaType = door.present?.content.media?.type ?? null
         form.tasksText = (door.present?.content.tasks ?? []).join('\n')
     },
-    { immediate: true }
+    { immediate: true },
 )
 
+function extractErrorMessage(error: unknown) {
+    if (error && typeof error === 'object') {
+        const payload = error as {
+            data?: { message?: string; error?: string }
+            statusMessage?: string
+            message?: string
+        }
+        return (
+            payload.data?.message ||
+            payload.data?.error ||
+            payload.statusMessage ||
+            payload.message ||
+            'Unable to load the calendar.'
+        )
+    }
+    return 'Unable to load the calendar.'
+}
+
+async function ensureCalendar() {
+    loadingCalendar.value = true
+    loadError.value = null
+    try {
+        await calendarStore.ensureCalendarLoaded(route.query.calendarId as string | undefined)
+    } catch (error) {
+        loadError.value = extractErrorMessage(error)
+    } finally {
+        loadingCalendar.value = false
+    }
+}
+
 function ensureDoor(day: number): CalendarDoor {
-    const existing = calendar.value?.doors.find(item => item.day === day)
+    const existing = calendar.value?.doors.find((item) => item.day === day)
     if (existing) {
         return existing
     }
@@ -104,7 +148,7 @@ function ensureDoor(day: number): CalendarDoor {
         day,
         opensAt: fallbackDate.toISOString(),
         state: 'available',
-        present: null
+        present: null,
     }
 }
 
@@ -118,7 +162,7 @@ function buildMedia(): PresentMedia | null {
         type: form.mediaType,
         url,
         description: form.mediaDescription || undefined,
-        thumbnailUrl: null
+        thumbnailUrl: null,
     }
 }
 
@@ -135,11 +179,11 @@ function buildPresent(baseDoor: CalendarDoor): Present {
             media: buildMedia(),
             tasks: form.tasksText
                 .split('\n')
-                .map(task => task.trim())
-                .filter(Boolean)
+                .map((task) => task.trim())
+                .filter(Boolean),
         },
         createdAt: baseDoor.present?.createdAt ?? now,
-        updatedAt: now
+        updatedAt: now,
     }
 }
 
@@ -162,12 +206,19 @@ async function handleSave() {
         const updatedDoor: CalendarDoor = {
             ...door,
             state: door.state === 'locked' ? 'available' : door.state,
-            present: buildPresent(door)
+            present: buildPresent(door),
         }
 
-        calendarStore.upsertDoor(updatedDoor)
+        await calendarStore.saveDoor(updatedDoor)
         calendarStore.setCurrentDoor(updatedDoor.day)
-        await router.push('/create-presents')
+        await router.push({
+            path: '/create-presents',
+            query: {
+                calendarId: calendar.value?.id ?? calendarStore.calendar?.id,
+            },
+        })
+    } catch (error) {
+        errorMessage.value = extractErrorMessage(error)
     } finally {
         saving.value = false
     }
@@ -178,23 +229,24 @@ function handleCancel() {
 }
 
 function selectMediaType(type: PresentMediaType) {
-    form.mediaType = form.mediaType === type ? null : type;
+    form.mediaType = form.mediaType === type ? null : type
 }
+
+onMounted(() => {
+    ensureCalendar()
+})
 </script>
 
 <template>
     <CalPageGrid>
-        <CalHeader
-            icon="🎁"
-            :title="`Edit Door ${dayParam || ''}`"
-            back-button
-        />
+        <CalHeader icon="🎁" :title="`Edit Door ${dayParam || ''}`" back-button back-link="/create-presents" />
         <section class="flex flex-col gap-4">
-            <p class="text-sm text-gray-600">
+            <p v-if="loadingCalendar" class="text-sm text-gray-500">Loading calendar…</p>
+            <p v-if="loadError" class="text-sm text-red-500">{{ loadError }}</p>
+            <p v-else class="text-sm text-gray-600">
                 Make this day memorable with a personal message, a shared activity, or a special hint.
             </p>
             <form class="grid gap-4" @submit.prevent="handleSave">
-                
                 <CalTextBox v-model="form.title" placeholder="Title" />
                 <CalTextArea v-model="form.message" placeholder="Description" />
                 <div class="grid gap-2">
@@ -214,21 +266,13 @@ function selectMediaType(type: PresentMediaType) {
                         </button>
                     </div>
                 </div>
-                <CalTextBox
-                    v-if="form.mediaType"
-                    v-model="form.mediaUrl"
-                    :placeholder="mediaUrlPlaceholder"
-                />
+                <CalTextBox v-if="form.mediaType" v-model="form.mediaUrl" :placeholder="mediaUrlPlaceholder" />
                 <CalTextBox
                     v-if="form.mediaType"
                     v-model="form.mediaDescription"
                     :placeholder="mediaDescriptionPlaceholder"
                 />
-                <CalTextArea
-                    v-model="form.tasksText"
-                    placeholder="Optional missions (one per line)"
-                    :rows="3"
-                />
+                <CalTextArea v-model="form.tasksText" placeholder="Optional missions (one per line)" :rows="3" />
                 <p v-if="errorMessage" class="text-sm text-red-500">{{ errorMessage }}</p>
                 <div class="flex gap-3">
                     <CalButton type="submit" :disabled="saving">
